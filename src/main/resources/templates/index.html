@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dynamic DB Viewer</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+<h2>Select Tables</h2>
+
+<form action="/query" method="post">
+
+    <select name="selectedTables" multiple size="6">
+        <option value="ALL">ALL TABLES</option>
+        <option th:each="t : ${tables}"
+                th:value="${t}"
+                th:text="${t}">
+        </option>
+    </select>
+
+    <br><br>
+    <button>Fetch Data</button>
+
+    <p><b>Tip:</b> Hold CTRL to multi-select 2 tables</p>
+</form>
+
+<hr/>
+
+<!-- ✅ Results Section -->
+<div th:if="${result}">
+
+    <div th:each="tableData : ${result}">
+
+        <h3 th:text="'Table: ' + ${tableData.tableName}"></h3>
+
+        <!-- ✅ Only render table if rows exist -->
+        <table th:if="${#lists.size(tableData.rows) > 0}" border="1">
+
+            <thead>
+            <tr>
+                <th th:each="col : ${tableData.columns}"
+                    th:text="${col}">
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="row : ${tableData.rows}">
+                <td th:each="col : ${tableData.columns}"
+                    th:text="${row.get(col)}">
+                </td>
+            </tr>
+            </tbody>
+
+        </table>
+
+        <!-- ✅ Show message if table has no rows -->
+        <div th:if="${#lists.size(tableData.rows) == 0}"
+             style="color: #999; font-style: italic;">
+            No data found in this table.
+        </div>
+
+        <br/>
+
+    </div>
+</div>
+
+
+
+</body>
+</html>
