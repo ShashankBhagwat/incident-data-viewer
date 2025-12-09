@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.DynamicTableData;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -11,15 +12,27 @@ public class DatabaseService {
 
     private final JdbcTemplate jdbc;
 
+
     public DatabaseService(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
 
     public List<String> listTables() {
         return jdbc.queryForList(
-                "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC'",
+                "SELECT table_name FROM information_schema.tables " +
+                        "WHERE table_schema = 'public' " +
+                        "AND table_type = 'BASE TABLE' " +
+                        "AND table_name NOT LIKE 'pg_%' " +
+                        "ORDER BY table_name",
                 String.class
         );
+
+        // H2
+//        return jdbc.queryForList(
+//                "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES " +
+//                        "WHERE TABLE_SCHEMA = 'PUBLIC'",
+//                String.class
+//        );
     }
 
     public DynamicTableData queryTable(String table) {

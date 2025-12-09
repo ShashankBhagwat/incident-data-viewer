@@ -2,72 +2,65 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Dynamic DB Viewer</title>
-
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-
 <body>
 
 <h2>Select Tables</h2>
 
-<form action="/query" method="post">
+<!-- validateSelection prevents empty submits -->
+<form action="/query" method="post" onsubmit="return validateSelection()">
 
-    <select name="selectedTables" multiple size="6">
-        <option value="ALL">ALL TABLES</option>
-        <option th:each="t : ${tables}"
-                th:value="${t}"
-                th:text="${t}">
-        </option>
-    </select>
+    <div class="dropdown-checkbox">
 
-    <br><br>
-    <button>Fetch Data</button>
+        <div class="dropdown-header" onclick="toggleDropdown()">
+            Select Tables ▼
+        </div>
 
-    <p><b>Tip:</b> Hold CTRL to multi-select 2 tables</p>
+        <div class="dropdown-content" id="dropdownBox">
+
+            <!-- NO ALL here — only real tables -->
+            <label class="checkbox-item" th:each="t : ${tables}">
+                <input type="checkbox" name="selectedTables"
+                       th:value="${t}" class="table-checkbox"
+                       th:checked="${selectedTables != null and selectedTables.contains(t)}">
+                <span th:text="${t}"></span>
+            </label>
+
+        </div>
+    </div>
+
+    <br/>
+    <button type="submit" class="btn-primary">Fetch Data</button>
+
 </form>
 
 <hr/>
 
-<!-- ✅ Results Section -->
 <div th:if="${result}">
-
     <div th:each="tableData : ${result}">
-
         <h3 th:text="'Table: ' + ${tableData.tableName}"></h3>
 
-        <!-- ✅ Only render table if rows exist -->
         <table th:if="${#lists.size(tableData.rows) > 0}" border="1">
-
             <thead>
             <tr>
-                <th th:each="col : ${tableData.columns}"
-                    th:text="${col}">
-                </th>
+                <th th:each="col : ${tableData.columns}" th:text="${col}"></th>
             </tr>
             </thead>
-
             <tbody>
             <tr th:each="row : ${tableData.rows}">
-                <td th:each="col : ${tableData.columns}"
-                    th:text="${row.get(col)}">
-                </td>
+                <td th:each="col : ${tableData.columns}" th:text="${row.get(col)}"></td>
             </tr>
             </tbody>
-
         </table>
 
-        <!-- ✅ Show message if table has no rows -->
-        <div th:if="${#lists.size(tableData.rows) == 0}"
-             style="color: #999; font-style: italic;">
+        <div th:if="${#lists.size(tableData.rows) == 0}" style="color: #999; font-style: italic;">
             No data found in this table.
         </div>
-
         <br/>
-
     </div>
 </div>
 
-
-
+<script th:src="@{/js/dropdown.js}"></script>
 </body>
 </html>

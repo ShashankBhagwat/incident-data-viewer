@@ -1,12 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.DynamicTableData;
 import com.example.demo.service.DatabaseService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
 @Controller
 public class UIController {
@@ -17,6 +18,12 @@ public class UIController {
         this.db = db;
     }
 
+    @GetMapping("/ping")
+    @ResponseBody
+    public String ping() {
+        return "✅ LAMBDA MVC OUTPUT IS WORKING";
+    }
+
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("tables", db.listTables());
@@ -25,30 +32,34 @@ public class UIController {
 
     @PostMapping("/query")
     public String queryTables(
-            @RequestParam(value = "selectedTables", required = false) List<String> selected,
+            HttpServletRequest request,
             Model model) {
 
-        if (selected == null || selected.isEmpty()) {
-            selected = List.of("ALL");
-        }
+        String[] selected = request.getParameterValues("selectedTables");
 
         List<String> finalTables;
 
-        if (selected.contains("ALL")) {
+        if (selected == null || selected.length == 0) {
+            // ✅ No selection sent → backend default to all
             finalTables = db.listTables();
         } else {
-            finalTables = selected;
+            finalTables = Arrays.asList(selected);
         }
 
         var data = db.queryMultipleTables(finalTables);
 
-        System.out.println("Listed tables : " + db.listTables());
-        System.out.println("Result : " + data);
+        System.out.println("Selected (RAW)      : " + Arrays.toString(selected));
+        System.out.println("Final tables used  : " + finalTables);
 
         model.addAttribute("tables", db.listTables());
         model.addAttribute("result", data);
 
+        if (selected != null && selected.length > 0) {
+            model.addAttribute("selectedTables", finalTables);
+        }
+
         return "index";
     }
+
 
 }
