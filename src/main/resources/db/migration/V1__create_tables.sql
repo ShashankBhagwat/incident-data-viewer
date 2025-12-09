@@ -31,4 +31,4 @@ CREATE TABLE orders (
     amount DECIMAL(10,2)
 );
 
---commit;
+commit;

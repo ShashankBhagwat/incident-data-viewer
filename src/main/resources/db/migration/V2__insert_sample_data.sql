@@ -7,4 +7,4 @@ VALUES ('Laptop', 80000), ('Mouse', 1200);
 INSERT INTO orders(order_date, amount)
 VALUES ('2025-01-01', 5000), ('2025-01-02', 14000);
 
---commit;
+commit;

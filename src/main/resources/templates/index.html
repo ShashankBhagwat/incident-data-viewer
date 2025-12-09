@@ -8,8 +8,7 @@
 
 <h2>Select Tables</h2>
 
-<!-- validateSelection prevents empty submits -->
-<form action="/query" method="post" onsubmit="return validateSelection()">
+<form action="query" method="post" onsubmit="return validateSelection()">
 
     <div class="dropdown-checkbox">
 
@@ -19,11 +18,13 @@
 
         <div class="dropdown-content" id="dropdownBox">
 
-            <!-- NO ALL here — only real tables -->
             <label class="checkbox-item" th:each="t : ${tables}">
-                <input type="checkbox" name="selectedTables"
-                       th:value="${t}" class="table-checkbox"
+                <input type="checkbox"
+                       name="selectedTables"
+                       th:value="${t}"
+                       class="table-checkbox"
                        th:checked="${selectedTables != null and selectedTables.contains(t)}">
+
                 <span th:text="${t}"></span>
             </label>
 
@@ -32,7 +33,6 @@
 
     <br/>
     <button type="submit" class="btn-primary">Fetch Data</button>
-
 </form>
 
 <hr/>
@@ -57,6 +57,7 @@
         <div th:if="${#lists.size(tableData.rows) == 0}" style="color: #999; font-style: italic;">
             No data found in this table.
         </div>
+
         <br/>
     </div>
 </div>

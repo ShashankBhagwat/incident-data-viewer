@@ -1,39 +1,35 @@
 package com.example.demo;
 
-import com.amazonaws.serverless.exceptions.ContainerInitializationException;
+import com.amazonaws.serverless.proxy.model.AwsProxyRequest;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
-import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * ✅ Correct handler for AWS Lambda Function URL (HTTP API v2)
- * ✅ Fixes the "200 OK but empty body" issue
- * ✅ Works with Spring Boot + Thymeleaf
- */
-public class UnifiedLambdaHandler
-        implements RequestHandler<HttpApiV2ProxyRequest, AwsProxyResponse> {
+public class UnifiedLambdaHandler implements RequestHandler<AwsProxyRequest, AwsProxyResponse> {
 
-    private static final SpringBootLambdaContainerHandler<
-            HttpApiV2ProxyRequest, AwsProxyResponse> handler;
+    private static final SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
 
     static {
         try {
-            handler = SpringBootLambdaContainerHandler
-                    .getHttpApiV2ProxyHandler(DemoApplication.class);
-        } catch (ContainerInitializationException e) {
-            throw new RuntimeException("❌ Failed to initialize Spring Boot application", e);
+            handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(DemoApplication.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not initialize Spring Boot handler", e);
         }
     }
 
     @Override
-    public AwsProxyResponse handleRequest(HttpApiV2ProxyRequest event, Context context) {
+    public AwsProxyResponse handleRequest(AwsProxyRequest request, Context context) {
 
-        System.out.println("✅ HTTP EVENT RECEIVED VIA LAMBDA FUNCTION URL");
-        System.out.println("➡️ Path: " + event.getRawPath());
-        System.out.println("➡️ Method: " + event.getRequestContext().getHttp().getMethod());
+        try {
+            System.out.println("RAW EVENT PAYLOAD:\n" + new ObjectMapper().writeValueAsString(request));
+        } catch (Exception e) {}
 
-        return handler.proxy(event, context);
+        System.out.println("Method: " + request.getHttpMethod());
+        System.out.println("Path: " + request.getPath());
+
+        return handler.proxy(request, context);
     }
+
 }

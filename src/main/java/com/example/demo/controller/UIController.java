@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.service.DatabaseService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -31,35 +33,27 @@ public class UIController {
     }
 
     @PostMapping("/query")
-    public String queryTables(
-            HttpServletRequest request,
-            Model model) {
+    public String queryTables(HttpServletRequest request, Model model) {
 
         String[] selected = request.getParameterValues("selectedTables");
 
         List<String> finalTables;
 
         if (selected == null || selected.length == 0) {
-            // ✅ No selection sent → backend default to all
-            finalTables = db.listTables();
+            finalTables = db.listTables();   // fallback safety
         } else {
             finalTables = Arrays.asList(selected);
         }
 
         var data = db.queryMultipleTables(finalTables);
 
-        System.out.println("Selected (RAW)      : " + Arrays.toString(selected));
-        System.out.println("Final tables used  : " + finalTables);
+        System.out.println("Selected (RAW)     : " + Arrays.toString(selected));
+        System.out.println("Final tables used : " + finalTables);
 
         model.addAttribute("tables", db.listTables());
         model.addAttribute("result", data);
-
-        if (selected != null && selected.length > 0) {
-            model.addAttribute("selectedTables", finalTables);
-        }
+        model.addAttribute("selectedTables", finalTables);
 
         return "index";
     }
-
-
 }
