@@ -14,42 +14,6 @@ The system is designed to be:
 
 ✅ Schema-migration safe using Flyway
 
-🔹 High-Level Architecture
-+----------------------+
-|   Business User      |
-|   (Web Browser)      |
-+----------+-----------+
-|
-| HTTPS
-v
-+--------------------------------------+
-| AWS Lambda Function URL (Public)     |
-| https://<lambda-id>.on.aws           |
-+------------------+-------------------+
-|
-v
-+--------------------------------------------------+
-| Spring Boot Application (Java 17)                |
-| Running inside AWS Lambda                        |
-|                                                  |
-| - Thymeleaf UI                                  |
-| - Controllers                                   |
-| - Service Layer                                 |
-| - JDBC (HikariCP)                               |
-| - Flyway Migrations                             |
-+------------------+-------------------------------+
-|
-| JDBC
-v
-+----------------------------------------------+
-| PostgreSQL RDS (Managed Database)            |
-|                                              |
-| - employees                                  |
-| - products                                   |
-| - orders                                     |
-| - flyway_schema_history                      |
-+----------------------------------------------+
-
 🔹 Component Breakdown
 1. Frontend (UI Layer)
 
