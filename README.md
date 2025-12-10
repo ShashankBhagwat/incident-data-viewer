@@ -1,66 +1,77 @@
-🏗️ Architecture – Incident Data Viewer
+📌 Project Overview
 
-## MAIN FEATURE WORKED - API GATEWAY + LAMBDA
+This project is a production-ready web application built with:
+
+Spring Boot (Java 17)
+
+Thymeleaf for server-side UI rendering
+
+PostgreSQL (AWS RDS) for production database
+
+H2 for local development
+
+Docker + ECS Fargate for containerized deployment
+
+Application Load Balancer (ALB) for public traffic routing
+
+The application allows users to:
+
+Dynamically list all database tables
+
+Select multiple tables using a dropdown with checkboxes
+
+Fetch and render data from selected tables dynamically
+
+Operate fully stateless (no session usage)
+
+🏗️ Final Architecture
+
+User Browser
+↓
+Application Load Balancer (ALB)
+↓
+ECS Fargate Service
+↓
+Spring Boot + Thymeleaf (Port 8080)
+↓
+PostgreSQL RDS
+
+⚙️ Technology Stack
+
+| Layer         | Technology                      |
+| ------------- | ------------------------------- |
+| Language      | Java 17                         |
+| Framework     | Spring Boot 2.7.18              |
+| UI            | Thymeleaf                       |
+| Database      | PostgreSQL (RDS), H2 (Local)    |
+| Container     | Docker                          |
+| Orchestration | ECS Fargate                     |
+| Load Balancer | Application Load Balancer (ALB) |
+| Build Tool    | Maven                           |
+
+🚀 Local Development
+
+mvn clean package
+
+docker build -t incident-data-viewer:local .
+
+docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=local incident-data-viewer:local
+
+http://localhost:8080/
+
+http://localhost:8080/ping
 
 ![img.png](img.png)
 
-## WORKED
 ![img_1.png](img_1.png)
-
-# Dynamic Database Viewer (Spring Boot + AWS Lambda + API Gateway + RDS)
-
-This project is a dynamic database table viewer built using:
-
-- Spring Boot (MVC + Thymeleaf)
-- AWS Lambda (Serverless)
-- API Gateway (HTTP access)
-- Amazon RDS (PostgreSQL)
-- Java 17
-- Maven
-
-It allows users to select database tables from a UI and view their data dynamically.
-
----
-
-## ✅ Features
-
-- Serverless Spring Boot application running inside AWS Lambda
-- UI built using Thymeleaf templates
-- Multi-table selection using custom dropdown with checkboxes
-- Dynamic rendering of table data
-- Works with both:
-    - Local DB (H2 optional)
-    - AWS RDS PostgreSQL
-- Fully integrated with API Gateway
-- Stateless by design (no session usage)
-
----
-
-## ✅ Architecture
-Browser
-|
-v
-API Gateway (Stage: /dev)
-|
-v
-AWS Lambda (Spring Boot Fat JAR)
-|
-v
-Amazon RDS (PostgreSQL)
-
-
-## ✅ Update Environment Variables and handler in lambda
-SPRING_DATASOURCE_URL=jdbc:postgresql://<rds-endpoint>:5432/postgres
-
-SPRING_DATASOURCE_USERNAME=postgres
-
-SPRING_DATASOURCE_PASSWORD=****
-
-SPRING_PROFILE=aws
-
-**Handler -** com.example.demo.UnifiedLambdaHandler::handleRequest
-
-## ✅ Open traffic in RDS and make it public accessible
 
 ![img_2.png](img_2.png)
 
+☁️ ECS Deployment – Required Environment Variables
+
+| Variable                     | Purpose      |
+| ---------------------------- | ------------ |
+| `SPRING_PROFILES_ACTIVE`     | aws          |
+| `SPRING_DATASOURCE_URL`      | RDS JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | RDS Username |
+| `SPRING_DATASOURCE_PASSWORD` | RDS Password |

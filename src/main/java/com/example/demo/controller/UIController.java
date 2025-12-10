@@ -3,13 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.service.DatabaseService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Controller
 public class UIController {
@@ -23,7 +20,7 @@ public class UIController {
     @GetMapping("/ping")
     @ResponseBody
     public String ping() {
-        return "✅ LAMBDA MVC OUTPUT IS WORKING";
+        return "✅ ECS MVC OUTPUT IS WORKING";
     }
 
     @GetMapping("/")
@@ -34,26 +31,19 @@ public class UIController {
 
     @PostMapping("/query")
     public String queryTables(HttpServletRequest request, Model model) {
-
         String[] selected = request.getParameterValues("selectedTables");
-
         List<String> finalTables;
-
         if (selected == null || selected.length == 0) {
-            finalTables = db.listTables();   // fallback safety
+            finalTables = db.listTables();
         } else {
             finalTables = Arrays.asList(selected);
         }
-
         var data = db.queryMultipleTables(finalTables);
-
-        System.out.println("Selected (RAW)     : " + Arrays.toString(selected));
+        System.out.println("Selected (RAW) : " + Arrays.toString(selected));
         System.out.println("Final tables used : " + finalTables);
-
         model.addAttribute("tables", db.listTables());
         model.addAttribute("result", data);
         model.addAttribute("selectedTables", finalTables);
-
         return "index";
     }
 }
