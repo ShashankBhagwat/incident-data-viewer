@@ -54,3 +54,26 @@ function validateSelection() {
 
     return true;
 }
+
+function updateDownloadButtons() {
+    const incidentId = document.getElementById("incidentId").value.trim();
+    const jsonData = document.getElementById("jsonDataField").value.trim();
+
+    const disable = (incidentId === "" || jsonData.length < 3);
+
+    document.getElementById("csvBtn").disabled = disable;
+    document.getElementById("excelBtn").disabled = disable;
+}
+
+// Sync incident ID into hidden fields before submit
+function copyIncidentId() {
+    let id = document.getElementById("incidentId").value.trim();
+    document.getElementById("incidentIdHidden1").value = id;
+    document.getElementById("incidentIdHidden2").value = id;
+}
+
+// Register listeners
+document.getElementById("incidentId").addEventListener("input", updateDownloadButtons);
+
+// Initialize state after page loads
+updateDownloadButtons();

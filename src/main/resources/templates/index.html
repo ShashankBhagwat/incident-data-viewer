@@ -35,6 +35,30 @@
     <button type="submit" class="btn-primary">Fetch Data</button>
 </form>
 
+<div class="action-bar">
+
+    <!-- Incident ID -->
+    <div class="incident-box">
+        <label for="incidentId">Incident ID</label>
+        <input type="text" id="incidentId" name="incidentId" placeholder="Enter ID">
+    </div>
+
+    <!-- CSV Button -->
+    <form action="/download" method="post" id="downloadForm" onsubmit="copyIncidentId()">
+        <input type="hidden" name="jsonData" id="jsonDataField" th:value="${resultJson}">
+        <input type="hidden" name="incidentId" id="incidentIdHidden1">
+        <button type="submit" id="csvBtn" class="btn download-btn">CSV</button>
+    </form>
+
+    <!-- Excel Button -->
+    <form action="/downloadExcel" method="post" id="downloadExcelForm" onsubmit="copyIncidentId()">
+        <input type="hidden" name="jsonData" id="jsonDataFieldExcel" th:value="${resultJson}">
+        <input type="hidden" name="incidentId" id="incidentIdHidden2">
+        <button type="submit" id="excelBtn" class="btn download-btn excel-btn">Excel</button>
+    </form>
+
+</div>
+
 <hr/>
 
 <div th:if="${result}">

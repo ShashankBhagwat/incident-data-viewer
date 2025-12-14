@@ -1,18 +1,3 @@
---ALTER SCHEMA public OWNER TO postgres;
---
---GRANT ALL ON SCHEMA public TO postgres;
---
---ALTER DEFAULT PRIVILEGES IN SCHEMA public
---GRANT ALL ON TABLES TO postgres;
---
---ALTER DEFAULT PRIVILEGES IN SCHEMA public
---GRANT ALL ON SEQUENCES TO postgres;
-
---DROP TABLE IF EXISTS employees;
---DROP TABLE IF EXISTS products;
---DROP TABLE IF EXISTS orders;
---DROP TABLE IF EXISTS flyway_schema_history;
-
 CREATE TABLE employees (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(100),
@@ -31,4 +16,11 @@ CREATE TABLE orders (
     amount DECIMAL(10,2)
 );
 
-commit;
+INSERT INTO employees(name, dept)
+VALUES ('Shashank', 'IT'), ('Manasa', 'HR');
+
+INSERT INTO products(product_name, price)
+VALUES ('Laptop', 80000), ('Mouse', 1200);
+
+INSERT INTO orders(order_date, amount)
+VALUES ('2025-01-01', 5000), ('2025-01-02', 14000);
