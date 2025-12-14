@@ -1,202 +1,311 @@
-🏗️ Architecture – Incident Data Viewer
+📌 Project Overview
 
-This project is a serverless web-based internal data viewer built using Spring Boot, AWS Lambda, PostgreSQL RDS, and Flyway, with a Thymeleaf UI exposed via a Lambda Function URL.
+This project is a production-ready web application built with:
 
-The system is designed to be:
+Spring Boot (Java 17)
 
-✅ Low cost
+Thymeleaf for server-side UI rendering
 
-✅ On-demand (not running 24/7)
+PostgreSQL (AWS RDS) for production database
 
-✅ Internal-tool friendly
+H2 for local development
 
-✅ Environment-aware (Local H2 / AWS PostgreSQL)
+Docker + ECS Fargate for containerized deployment
 
-✅ Schema-migration safe using Flyway
+Application Load Balancer (ALB) for public traffic routing
 
-🔹 Component Breakdown
-1. Frontend (UI Layer)
+The application allows users to:
 
-Built using Thymeleaf
+Dynamically list all database tables
 
-Served directly from Spring Boot running inside AWS Lambda
+Select multiple tables using a dropdown with checkboxes
 
-Accessed through:
+Fetch and render data from selected tables dynamically
 
-https://<lambda-id>.lambda-url.<region>.on.aws
+Operate fully stateless (no session usage)
 
+🏗️ Final Architecture
 
-Features:
+User Browser
+↓
+Application Load Balancer (ALB)
+↓
+ECS Fargate Service
+↓
+Spring Boot + Thymeleaf (Port 8080)
+↓
+PostgreSQL RDS
 
-Table selection (single, multi-select, ALL)
+⚙️ Technology Stack
 
-Dynamic column rendering
+| Layer         | Technology                      |
+| ------------- | ------------------------------- |
+| Language      | Java 17                         |
+| Framework     | Spring Boot 2.7.18              |
+| UI            | Thymeleaf                       |
+| Database      | PostgreSQL (RDS), H2 (Local)    |
+| Container     | Docker                          |
+| Orchestration | ECS Fargate                     |
+| Load Balancer | Application Load Balancer (ALB) |
+| Build Tool    | Maven                           |
 
-Displays multiple tables sequentially
+🚀 Local Development
 
-No React, no API Gateway (kept minimal on purpose)
+mvn clean package
 
-2. Backend (Spring Boot on AWS Lambda)
+docker build -t incident-data-viewer:local .
 
-Runs using:
+docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=local incident-data-viewer:local
 
-✅ Java 17
+http://localhost:8080/
 
-✅ Spring Boot 2.7.18 (Lambda-compatible)
+http://localhost:8080/ping
 
-Packaged using:
+![img.png](img.png)
 
-✅ Maven Shade Plugin (flat JAR for Lambda)
+![img_1.png](img_1.png)
 
-Responsibilities:
+![img_2.png](img_2.png)
 
-Serves UI
+☁️ ECS Deployment – Required Environment Variables
 
-Executes JDBC queries
+| Variable                     | Purpose      |
+| ---------------------------- | ------------ |
+| `SPRING_PROFILES_ACTIVE`     | aws          |
+| `SPRING_DATASOURCE_URL`      | RDS JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | RDS Username |
+| `SPRING_DATASOURCE_PASSWORD` | RDS Password |
 
-Handles dynamic table selection
+## Steps followed to push image to AWS
+- Created ECR in AWS
+- Connect to ECR from local -
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 403353369362.dkr.ecr.us-east-1.amazonaws.com/incident-data-viewer
+- Build docker image -
+    - docker build -t incident-data-viewer:local .
+- docker tag incident-data-viewer:local 403353369362.dkr.ecr.us-east-1.amazonaws.com/incident-data-viewer:latest
+- docker push 403353369362.dkr.ecr.us-east-1.amazonaws.com/incident-data-viewer:latest
 
-Integrates with Flyway
+✅ PHASE 2 — IAM (ECS Execution Role)
 
-Lambda is cold-started only when the URL is accessed, ensuring:
+This allows ECS to:
 
-Zero idle cost
+Pull images from ECR
 
-True serverless behavior
+Write logs to CloudWatch
 
-3. Database (PostgreSQL RDS)
+Step 2.1: Create IAM Role
 
-Managed AWS RDS PostgreSQL
+Go to IAM → Roles → Create Role
 
-Stores:
+Select:
 
-employees
+Trusted entity: AWS Service
 
-products
+Use case: Elastic Container Service
 
-orders
+Choose:
 
-Also maintains:
+Elastic Container Service Task
 
-flyway_schema_history for migration tracking
+Attach Policies:
 
-Accessed using:
+AmazonECSTaskExecutionRolePolicy
 
-JDBC via HikariCP
+Role name:
 
-4. Database Migration (Flyway)
+ecsTaskExecutionRole
 
-Flyway runs automatically during application startup.
+Create role
 
-Migration order:
+✅ PHASE 3 — ECS Cluster (Fargate)
 
-V0__grant_permissions.sql
-V1__create_tables.sql
-V2__insert_sample_data.sql
+Step 3.1: Create ECS Cluster
 
+Go to ECS → Clusters
 
-Flyway responsibilities:
+Click Create Cluster
 
-Auto-create tables
+Choose:
 
-Auto-insert seed data
+Cluster name: incident-cluster
 
-Maintain schema version history
+Infrastructure: AWS Fargate
 
-Prevent accidental schema drift
+Create
 
-🔹 Environment Separation
+✅ PHASE 4 — ECS Task Definition (MOST IMPORTANT)
 
-The same JAR runs in both Local and AWS using Spring Profiles.
+This defines:
 
-Environment	Profile	Database
-Local	local	H2 (In-memory)
-AWS Lambda	aws	PostgreSQL RDS
-Local Configuration
-application-local.properties → H2
+Docker image
 
-AWS Configuration
-application-aws.properties → PostgreSQL RDS
+Port
 
+Env variables (RDS)
 
-Activated using:
+Logging
 
-SPRING_PROFILE=aws
+Step 4.1: Create Task Definition
 
+ECS → Task Definitions
 
-set as a Lambda Environment Variable.
+Click Create new Task Definition
 
-🔹 Data Flow
-✅ UI Data Request Flow
-User
-→ Lambda Function URL
-→ Spring Boot Controller
-→ DatabaseService
-→ JDBC (HikariCP)
-→ PostgreSQL RDS
-→ Result Set
-← Data Mapping
-← Service Response
-← Thymeleaf Rendering
-← HTML UI Response
+Choose:
 
-🔹 Why This Architecture Was Chosen
-Requirement	Design Decision
-Cheap	Lambda + RDS
-No API Gateway	Lambda Function URL
-No React	Thymeleaf
-Dynamic schema	Flyway
-On-demand	Serverless
-Easy rollback	Versioned migrations
-Local dev support	H2 Profile
-🔹 What This Architecture Avoids (Deliberately)
+Launch type: Fargate
 
-To keep costs and complexity low, the following were intentionally excluded:
+Step 4.2: Task Definition Settings
 
-❌ API Gateway
+Field	Value
 
-❌ Cognito Authentication
+Task family	incident-task
 
-❌ CloudFront CDN
+CPU	512
 
-❌ EC2 Servers
+Memory	1024
 
-❌ Kubernetes
+Task role	None
 
-❌ CI/CD Pipelines
+Execution role	ecsTaskExecutionRole
 
-❌ Service Mesh
+OS	Linux
 
-❌ Secrets Manager (can be added later)
+Architecture	X86_64
 
-🔹 Production Hardening (Optional – Future Enhancements)
+Step 4.3: Container Definition
 
-These can be added later if required:
+Field	Value
 
-Lock RDS access to Lambda VPC only
+Name	incident-container
 
-Move DB credentials to AWS Secrets Manager
+Image	123456789012.dkr.ecr.us-east-1.amazonaws.com/incident-data-viewer:latest
 
-Add Cognito authentication
+Port	8080
 
-Enable audit logging
+Protocol	TCP
 
-Add pagination & export
+Step 4.4: Environment Variables (CRITICAL)
 
-Add role-based data access
+Add:
 
-Terraform automation
+Name	Value
 
-✅ Final Summary
+SPRING_PROFILES_ACTIVE	aws
 
-This architecture provides:
+SPRING_DATASOURCE_URL	jdbc:postgresql://<rds-endpoint>:5432/<db>
 
-✅ Serverless UI + Backend
-✅ Version-controlled DB migrations
-✅ Environment separation (Local + AWS)
-✅ Low cost
-✅ Zero always-on servers
-✅ Easy to debug
-✅ Scales automatically
+SPRING_DATASOURCE_USERNAME	<db-user>
 
-This is a perfect fit for internal business reporting tools with controlled usage.
+SPRING_DATASOURCE_PASSWORD	<db-password>
+
+Step 4.5: Logging
+
+Enable:
+
+CloudWatch logs
+
+Log group:
+
+/ecs/incident-task
+
+
+✅ PHASE 5 — VPC & Security Groups (Create Task Definition)
+
+You need 3 security groups:
+
+Component	Port
+
+ALB	80
+
+ECS	8080
+
+RDS	5432
+
+Step 5.1: Create ALB Security Group
+
+Inbound:
+
+HTTP 80 from 0.0.0.0/0
+
+Step 5.2: Create ECS Security Group
+
+Inbound:
+
+TCP 8080 from ALB security group ONLY
+
+Step 5.3: RDS Security Group
+
+Inbound:
+
+TCP 5432 from ECS security group ONLY
+
+✅ PHASE 6 — Application Load Balancer (ALB)
+
+Step 6.1: Create ALB
+
+Go to EC2 → Load Balancers
+
+Create Application Load Balancer
+
+Internet facing
+
+Select at least 2 public subnets
+
+Assign ALB Security Group
+
+Step 6.2: Create Target Group
+
+Field	Value
+
+Type	IP
+
+Protocol	HTTP
+
+Port	8080
+
+Health Check	/ping
+
+✅ PHASE 7 — ECS Service (Connect Everything)
+
+Now we attach ECS to ALB.
+
+Step 7.1: Create ECS Service
+
+ECS → Clusters → incident-cluster
+
+Create Service:
+
+Launch type: Fargate
+
+Task definition: incident-task
+
+Desired tasks: 1
+
+Step 7.2: Networking
+
+Select same VPC as ALB
+
+Subnets: public
+
+Assign ECS Security Group
+
+Auto-assign public IP
+
+Step 7.3: Load Balancer Mapping
+
+Type: Application Load Balancer
+
+Listener: 80
+
+Target Group: incident-tg
+
+Container: incident-container
+
+Container port: 8080
+
+Create Service
+
+## FINALLYYY
+
+![img_3.png](img_3.png)
